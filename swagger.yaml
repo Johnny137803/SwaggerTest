@@ -1,0 +1,1408 @@
+openapi: 3.0.1
+info:
+  title: My Spring Boot API Document
+  description: The document will list cpa APIs.
+  version: Ver. 1.0.0
+servers:
+  - url: http://localhost:9090
+    description: Generated server url
+security:
+  - JWT Authentication: []
+tags:
+  - name: CPA04-配置管理
+    description: 提供用戶、系統及其他配置相關的 API，支援動態選項數據查詢
+  - name: CPA02-系統帳號管理
+    description: 處理帳戶相關操作的 API
+  - name: CPA01-身份驗證
+    description: 處理用戶身份驗證的 API，包括登入、註冊和登出操作。
+  - name: CPA10-錯誤攔截測試
+    description: Spring 會自動攔截這些例外並交由對應的 @ExceptionHandler 方法處理。
+  - name: CPA03-角色管理
+    description: 處理角色相關操作的 API
+paths:
+  /{domain}/api/v1/users:
+    get:
+      tags:
+        - CPA02-系統帳號管理
+      summary: 查詢帳號列表
+      description: 根據條件取得帳號列表資訊。
+      operationId: getUsers
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 50
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            default: userCode
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            default: asc
+        - name: searchQuery
+          in: query
+          description: '請輸入帳號使用者的資料 (如: 帳號/姓名/證號)'
+          required: false
+          schema:
+            type: string
+          example: 測試人員
+        - name: email
+          in: query
+          description: 請輸入帳號綁定的電子郵件
+          required: false
+          schema:
+            type: string
+          example: test@example.com
+        - name: accountStatus
+          in: query
+          description: 帳號狀態篩選
+          required: false
+          schema:
+            type: string
+          example: 00、90、X0
+        - name: userType
+          in: query
+          description: 人員類別篩選
+          required: false
+          schema:
+            type: string
+          example: SYSOP|STAFF|MEMBER|ASSISTANT
+        - name: securityLocked
+          in: query
+          description: 篩選出因為登入錯誤次數過多而被安全鎖定的帳號
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: manualLocked
+          in: query
+          description: 篩選出因為被人工上鎖而鎖定中的帳號
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: accountCreatedFrom
+          in: query
+          description: 帳號建立日期查詢範圍起日
+          required: false
+          schema:
+            type: string
+          example: 113/01/01
+        - name: accountCreatedTo
+          in: query
+          description: 帳號建立日期查詢範圍迄日
+          required: false
+          schema:
+            type: string
+          example: 113/12/31
+        - name: statusChangedFrom
+          in: query
+          description: 帳號狀態最近異動日期查詢範圍起日
+          required: false
+          schema:
+            type: string
+          example: 113/05/01
+        - name: statusChangedTo
+          in: query
+          description: 帳號狀態最近異動日期查詢範圍迄日
+          required: false
+          schema:
+            type: string
+          example: 113/12/31
+      responses:
+        '200':
+          description: '查詢完成結果如下, 共 ## 筆查詢結果'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: 查詢完成結果如下, 共 1 筆查詢結果
+                data:
+                  items:
+                    - userId: 2
+                      userCode: test1
+                      userName: 測試人員A
+                      userIdno: A123456789
+                      userEmail: test@syscom.com.tw
+                      userStatus: '00'
+                      userTypeList: SYSOP
+                      loginLockExpiryDatetime: 113/12/23 16:01
+                      isEnabled: true
+                      createdAt: 113/12/17 17:51
+                      createdBy: admin
+                      createdByName: 系統管理者
+                      updatedAt: 113/12/23 14:11
+                      updatedBy: admin
+                      updatedByName: 系統管理者
+                  pagination:
+                    currentPage: 1
+                    pageSize: 50
+                    totalPages: 1
+                    totalItems: 1
+        '204':
+          description: 無符合的查詢結果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 204
+                message: 無符合的查詢結果, 請調整查詢的條件
+                data: null
+        '400':
+          description: 錯誤的請求
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                沒有輸入任何條件:
+                  description: 沒有輸入任何條件
+                  value:
+                    code: 400
+                    message: 請輸入至少一條件
+                    data: null
+                請檢查輸入的欄位:
+                  description: 請檢查輸入的欄位
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:帳號建立日期-查詢起日(113-12-18)
+                    data: null
+                非法的排序欄位:
+                  description: 非法的排序欄位
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:排序欄位 createdAtD 不在允許的欄位範圍內
+                    data: null
+                無效的排序方式:
+                  description: 無效的排序方式
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:排序方式 descA 無效，請使用 asc 或 desc
+                    data: null
+                無效的排序組合:
+                  description: 無效的排序組合
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:排序欄位數量與排序方式數量不一致
+                    data: null
+        '500':
+          description: 查詢過程發生例外
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 查詢過程發生錯誤
+                data: null
+    post:
+      tags:
+        - CPA02-系統帳號管理
+      summary: 新增用戶
+      description: 新增一個新的用戶，並返回新增用戶的資訊。
+      operationId: createUser
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+      requestBody:
+        description: 新增使用者的詳細資料
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+            examples:
+              正確範例:
+                summary: 新增使用者請求範例
+                description: '圈選項目、勾選項目皆從list_code取得集合並驗證參數<br>Example:<br>accountStatus : [00, 90, X0]<br>userType : [STAFF, MEMBER, ASSISTANT]<br>idType : [NATIONAL, RESIDENT]<br>gender : [, M, F, O]'
+                value:
+                  account: testaccount01
+                  name: 李四
+                  email: test01@example.com
+                  phone: '0912345678'
+                  accountStatus: '00'
+                  idType: NATIONAL
+                  idNumber: A123456789
+                  userType: STAFF
+                  gender: M
+                  birthDate: 090/05/15
+                  title: 先生
+                  roleList: ORG_USR_MGR;ORG_DOC_MGR
+              錯誤範例(@Valid @RequestBody):
+                summary: Spring 驗證機制
+                description: 錯誤範例(@Valid @RequestBody)
+                value:
+                  account: ''
+                  email: test01example.com
+                  phone: A0912345678
+                  accountStatus: '00'
+                  idType: NATIONAL
+                  idNumber: A123456789012345678901
+                  userType: STAFF
+                  gender: M
+                  birthDate: 99-05-15
+                  title: 先生
+                  roleList: ORG_USR_MGR;ORG_DOC_MGR
+        required: true
+      responses:
+        '200':
+          description: 資料新增作業完成
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: 資料新增作業完成
+                data:
+                  userCode: testaccount10
+                  userName: 李四
+                  userEmail: test10@example.com
+                  userCellphone: '0912345678'
+                  userStatus: '00'
+                  userStatusChangeDate: 113/12/27
+                  loginLockExpiryDatetime: ''
+                  isEnabled: true
+                  userIdnoType: NATIONAL
+                  userIdno: A123456789
+                  userTypeList: STAFF
+                  userAccount:
+                    userGender: M
+                    userBirthdate: 090/05/15
+                    loginSuccessDatetime: ''
+                    loginErrorCount: 0
+                    userSuffix: 先生
+                    userId: 122
+                    userGuid: 7cdca1d0-3ded-4ef7-8cda-ab9a6a6c2337
+                    createdAt: 113/12/27 10:55
+                    createdBy: admin
+                    createdByName: 系統管理者
+                    updatedAt: ''
+                    updatedBy: ''
+                    updatedByName: ''
+                  userRoleList:
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_DOC_MGR
+                      roleName: 公會-公文管理(公會層級-公文管理)
+                      roleDesc: 管理收發公文的人員
+                      isEnabled: true
+                      createdAt: 113/12/27 10:55
+                      createdBy: admin
+                      createdByName: 系統管理者
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_USR_MGR
+                      roleName: 公會-帳號管理(公會層級-帳號管理)
+                      roleDesc: 管理帳號新增編輯的人員
+                      isEnabled: true
+                      createdAt: 113/12/27 10:55
+                      createdBy: admin
+                      createdByName: 系統管理者
+        '400':
+          description: 錯誤的請求
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                帳號重複:
+                  description: 帳號重複
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:帳號 testaccount01 已經存在，請選擇其他帳號。
+                    data: null
+                信箱重複:
+                  description: 信箱重複
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:電子郵件已經被使用！
+                    data: null
+                參數未通過檢核:
+                  description: 參數未通過檢核
+                  value:
+                    code: 400
+                    message: Bad Request
+                    data:
+                      phone: 手機號碼格式不正確
+                      name: 請輸入使用者的真實姓名
+                      idNumber: 證件號碼長度不能超過 20 個字元
+                      birthDate: 出生日期格式應為 YYY/MM/DD
+                      account: 請輸入要建立的使用者帳號
+                      email: 請輸入有效的電子信箱地址
+                無效的圈選項目(user_type、user_status、idno_type、gender_code):
+                  description: |
+                    user_status : [00, 90, X0]
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:accountStatus
+                    data: null
+        '404':
+          description: 指定的用戶或角色不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 404
+                message: 指定的資料不存在
+                data: null
+        '500':
+          description: 查詢過程發生例外
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 服務暫時無法使用，請稍後再試。
+                data: null
+  /{domain}/api/v1/users/{userId}/removeRole/{roleCode}:
+    post:
+      tags:
+        - CPA02-系統帳號管理
+      summary: 根據角色代碼移除角色
+      description: 根據使用者的 ID 和角色代碼，將指定角色移除
+      operationId: removeRoleFromUser
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: userId
+          in: path
+          description: 帳號ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: roleCode
+          in: path
+          description: 角色代碼
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功移除角色
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: 資料修改作業完成
+                data: null
+        '400':
+          description: 輸入的參數無效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 400
+                message: 請檢查輸入的欄位:使用者未擁有該角色
+                data: null
+        '404':
+          description: 指定的角色或使用者不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 404
+                message: 指定的資料不存在
+                data: null
+        '500':
+          description: 內部服務錯誤，操作失敗
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 服務暫時無法使用，請稍後再試。
+                data: null
+  /{domain}/api/v1/users/{userId}/addRole/{roleCode}:
+    post:
+      tags:
+        - CPA02-系統帳號管理
+      summary: 新增角色給使用者（根據角色代碼 添加角色）
+      description: 根據用戶 ID 和角色代碼，將指定的角色新增至該用戶。
+      operationId: addRoleToUserByCode
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: userId
+          in: path
+          description: 帳號ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: roleCode
+          in: path
+          description: 角色代碼
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 角色成功新增至用戶
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: 資料新增作業完成
+                data: null
+        '400':
+          description: 輸入的參數無效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 400
+                message: 請檢查輸入的欄位:使用者已經有該角色
+                data: null
+        '404':
+          description: 指定的用戶或角色不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 404
+                message: 指定的資料不存在
+                data: null
+        '500':
+          description: 內部服務錯誤，操作失敗
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 服務暫時無法使用，請稍後再試。
+                data: null
+  /{domain}/api/v1/users/{id}/enable:
+    post:
+      tags:
+        - CPA02-系統帳號管理
+      summary: 啟用用戶
+      description: 根據用戶的 ID 啟用該用戶。該操作會使用戶狀態從禁用變為啟用。
+      operationId: enableUser
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: id
+          in: path
+          description: 帳號ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 成功啟用用戶
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: 資料修改作業完成
+                data: null
+        '400':
+          description: 輸入的參數無效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 400
+                message: 請檢查輸入的欄位:該帳號未被禁用，無須啟用。。
+                data: null
+        '404':
+          description: 指定的使用者不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 404
+                message: 指定的資料不存在
+                data: null
+        '500':
+          description: 內部服務錯誤，操作失敗
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 服務暫時無法使用，請稍後再試。
+                data: null
+  /{domain}/api/v1/users/{id}/disable:
+    post:
+      tags:
+        - CPA02-系統帳號管理
+      summary: 禁用用戶
+      description: 根據用戶的 ID 禁用該用戶。此操作會將用戶狀態從啟用變為禁用，限制其訪問權限。
+      operationId: disableUser
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: id
+          in: path
+          description: 帳號ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 成功啟用用戶
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: 資料修改作業完成
+                data: null
+        '400':
+          description: 輸入的參數無效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 400
+                message: 請檢查輸入的欄位:該帳號已被禁用，無須再次禁用。
+                data: null
+        '404':
+          description: 指定的使用者不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 404
+                message: 指定的資料不存在
+                data: null
+        '500':
+          description: 內部服務錯誤，操作失敗
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 服務暫時無法使用，請稍後再試。
+                data: null
+  /{domain}/api/v1/auth/logout:
+    post:
+      tags:
+        - CPA01-身份驗證
+      summary: 使用者登出
+      description: 從 RequestHeader 取得 JWT，並進行登出操作
+      operationId: userLogout
+      parameters:
+        - name: Authorization
+          in: header
+          description: JWT token，用於身份驗證
+          required: true
+          schema:
+            type: string
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功登出
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseObject'
+        '401':
+          description: 無效的認證資訊。
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseObject'
+        '404':
+          description: 驗證令牌無效或已過期。
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseObject'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseObject'
+  /{domain}/api/v1/auth/login:
+    post:
+      tags:
+        - CPA01-身份驗證
+      summary: 用戶登入
+      description: 用戶登入，驗證成功後生成並回傳 JWT token。
+      operationId: authenticateUser
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: 登入成功，回傳 JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: Success
+                data:
+                  token: eyJhbGciOiJIUxaIAc.eyJzdWIiOiJ0cGVjcGFfYWRtaW4iLCJkb21haW4iOiJ0cGVjcGEiLCJpYXQiOjE3MzMxMjQwOTksIt07YGnMTczMzIxMDQ5OX0.zsdXV9_nbGZpwb10YPafZenrI-u-y1Gj1HkkzYxVJLuON_8-Udt07YGnzGdRP7_q3NkS1mIDMi0ohIXZdyQ
+                  type: Bearer
+                  id: 1
+                  username: tpecpa_admin
+                  email: johnny_ho@syscom.com.tw
+                  roles:
+                    - ROLE_admin
+        '400':
+          description: 請求參數錯誤
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 400
+                message: Bad Request
+                data: null
+        '401':
+          description: 認證失敗，帳號或密碼錯誤
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 401
+                message: 使用者名稱或密碼錯誤。
+                data: null
+        '500':
+          description: 內部服務錯誤，操作失敗
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 服務暫時無法使用，請稍後再試。
+                data: null
+  /{domain}/api/v1/users/{id}:
+    get:
+      tags:
+        - CPA02-系統帳號管理
+      summary: 查詢特定帳號資訊
+      description: 根據帳號 ID 查詢用戶的詳細資訊。
+      operationId: getUserById
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: id
+          in: path
+          description: 帳號ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 查詢完成
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: 查詢完成結果如下, 共 1 筆查詢結果
+                data:
+                  userCode: testaccount03
+                  userName: 李四3
+                  userEmail: test03@example.com
+                  userCellphone: '+886912345678'
+                  userStatus: '00'
+                  userStatusChangeDate: 113/12/26
+                  loginLockExpiryDatetime: ''
+                  isEnabled: true
+                  userIdnoType: NATIONAL
+                  userIdno: A123456789
+                  userTypeList: STAFF
+                  userAccount:
+                    userGender: M
+                    userBirthdate: 090/05/15
+                    loginSuccessDatetime: ''
+                    loginErrorCount: 0
+                    userSuffix: 先生
+                    userId: 115
+                    userGuid: 251be30c-f68e-4288-b9e5-a1479729a8b9
+                    createdAt: 113/12/26 17:51
+                    createdBy: admin
+                    createdByName: 系統管理者
+                    updatedAt: ''
+                    updatedBy: ''
+                    updatedByName: ''
+                  userRoleList:
+                    - authUserType: STAFF
+                      roleCode: ORG_SYS_ADMIN
+                      roleName: 公會-系統管理(公會層級-系統管理)
+                      roleDesc: 管理系統的公會人員
+                      isEnabled: true
+                      createdAt: 113/12/26 17:51
+                      createdBy: admin
+                      createdByName: 系統管理者
+                    - authUserType: STAFF
+                      roleCode: SYS_OP
+                      roleName: 系統維運人員
+                      roleDesc: 負責維護系統
+                      isEnabled: true
+                      createdAt: 113/12/26 17:51
+                      createdBy: admin
+                      createdByName: 系統管理者
+        '400':
+          description: 輸入的參數無效
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 400
+                message: Bad Request
+                data:
+                  id: 參數 id 的值無法轉換為期望的類型 Long
+        '404':
+          description: 指定的使用者不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 404
+                message: 指定的資料不存在
+                data: null
+        '500':
+          description: 內部服務錯誤，操作失敗
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 查詢過程發生錯誤
+                data: null
+  /{domain}/api/v1/roles:
+    get:
+      tags:
+        - CPA03-角色管理
+      summary: 查詢角色列表
+      description: 根據條件查詢並回傳角色列表
+      operationId: getAllRoles
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 2147483647
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            default: roleOrder
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            default: asc
+        - name: userType
+          in: query
+          description: 人員類別篩選
+          required: false
+          schema:
+            type: string
+          example: SYSOP|STAFF|MEMBER|ASSISTANT
+      responses:
+        '200':
+          description: '查詢完成結果如下, 共 ## 筆查詢結果'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: 查詢完成結果如下, 共 13 筆查詢結果
+                data:
+                  items:
+                    - authUserType: STAFF
+                      roleCode: SYS_OP
+                      roleName: 系統維運人員
+                      roleDesc: 負責維護系統
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: MEMBER
+                      roleCode: ORG_NORM_MEM
+                      roleName: 普通會員
+                      roleDesc: 普通會員
+                      isEnabled: true
+                      createdAt: 113/12/25 13:52
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF
+                      roleCode: ORG_SYS_ADMIN
+                      roleName: 公會-系統管理(公會層級-系統管理)
+                      roleDesc: 管理系統的公會人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_USR_MGR
+                      roleName: 公會-帳號管理(公會層級-帳號管理)
+                      roleDesc: 管理帳號新增編輯的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_ACT_MGR
+                      roleName: 公會-活動管理(公會層級-活動管理)
+                      roleDesc: 管理活動發佈及報名等的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_DOC_MGR
+                      roleName: 公會-公文管理(公會層級-公文管理)
+                      roleDesc: 管理收發公文的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: ''
+                      roleCode: admin
+                      roleName: 系統管理者
+                      roleDesc: ''
+                      isEnabled: true
+                      createdAt: 113/12/17 14:14
+                      createdBy: System
+                      createdByName: ''
+                    - authUserType: ''
+                      roleCode: cpa_admin
+                      roleName: 公會管理員
+                      roleDesc: ''
+                      isEnabled: false
+                      createdAt: 113/12/17 14:14
+                      createdBy: System
+                      createdByName: ''
+                    - authUserType: ''
+                      roleCode: admin
+                      roleName: 系統管理者
+                      roleDesc: ''
+                      isEnabled: true
+                      createdAt: 113/12/17 14:14
+                      createdBy: System
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_FEE_MGR
+                      roleName: 公會-會費管理(公會層級-會費管理)
+                      roleDesc: 管理會費繳納狀況的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_SPV_MGR
+                      roleName: 公會-印鑑管理(公會層級-印鑑管理)
+                      roleDesc: 管理印鑑證明的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_PNFC_MGR
+                      roleName: 公會-推播管理(公會層級-推播管理)
+                      roleDesc: 管理推播清單的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_SHFT_MGR
+                      roleName: 公會-輪值管理(公會層級-輪值管理)
+                      roleDesc: 管理輪值成員的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                  pagination:
+                    currentPage: 1
+                    pageSize: 2147483647
+                    totalPages: 1
+                    totalItems: 13
+        '204':
+          description: 無符合的查詢結果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 204
+                message: 無符合的查詢結果, 請調整查詢的條件
+                data: null
+        '400':
+          description: 錯誤的請求
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                請檢查輸入的欄位:
+                  description: 請檢查輸入的欄位
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:userType
+                    data: null
+                非法的排序欄位:
+                  description: 非法的排序欄位
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:排序欄位 createdAtD 不在允許的欄位範圍內
+                    data: null
+                無效的排序方式:
+                  description: 無效的排序方式
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:排序方式 descA 無效，請使用 asc 或 desc
+                    data: null
+                無效的排序組合:
+                  description: 無效的排序組合
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:排序欄位數量與排序方式數量不一致
+                    data: null
+        '500':
+          description: 查詢過程發生例外
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 查詢過程發生錯誤
+                data: null
+  /{domain}/api/v1/roles/{roleCode}:
+    get:
+      tags:
+        - CPA03-角色管理
+      summary: 查詢特定帳號資訊
+      description: 根據帳號 ID 查詢用戶的詳細資訊。
+      operationId: getRole
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: roleCode
+          in: path
+          description: 角色代號
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 查詢完成
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: 查詢完成結果如下, 共 1 筆查詢結果
+                data:
+                  orgCode: CPA_TP_UAT
+                  roleCode: ORG_SYS_ADMIN
+                  roleName: 公會-系統管理(公會層級-系統管理)
+                  roleDesc: 管理系統的公會人員
+                  roleLevel: null
+                  authUserType: STAFF
+                  isEnabled: true
+                  createdAt: '2024-12-25T03:23:41.374+00:00'
+                  createdBy: jeff
+                  createdByName: ''
+                  isDeleted: false
+        '404':
+          description: 指定的角色不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 404
+                message: 指定的資料不存在
+                data: null
+        '500':
+          description: 內部服務錯誤，操作失敗
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 查詢過程發生錯誤
+                data: null
+  /{domain}/api/v1/common/dropdown/config:
+    get:
+      tags:
+        - CPA04-配置管理
+      operationId: getDropdownOptionsFromConfig
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            default: asc
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseObject'
+  /{domain}/api/v1/common/dropdown/code:
+    get:
+      tags:
+        - CPA04-配置管理
+      summary: 根據類別代碼獲取下拉選項
+      description: 根據傳入的域名、類別代碼類型（groupType）以及排序順序，返回對應的下拉選項列表。
+      operationId: getDropdownOptionsFromCode
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: type
+          in: query
+          description: 下拉選項的類別類型，例如：'user_type', 'user_status' 等
+          required: true
+          schema:
+            type: string
+        - name: sortOrder
+          in: query
+          description: 排序順序，預設為 'asc'
+          required: false
+          schema:
+            type: string
+            default: asc
+          example: asc
+      responses:
+        '200':
+          description: 成功獲取下拉選項
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DropdownOptionDTO'
+        '400':
+          description: 無效的請求，缺少必要的參數或參數格式錯誤
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseObject'
+        '500':
+          description: 伺服器錯誤，服務不可用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /error/sql-error:
+    get:
+      tags:
+        - CPA10-錯誤攔截測試
+      summary: 模擬拋出資料庫錯誤
+      description: 這個端點用於模擬並觸發一個 `SQLException`。
+      operationId: triggerSQLException
+      responses:
+        '500':
+          description: SQLException 被攔截
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /error/runtime-error:
+    get:
+      tags:
+        - CPA10-錯誤攔截測試
+      summary: 模擬拋出執行時例外
+      description: 這個端點用於模擬並觸發一個 `RuntimeException`。
+      operationId: triggerRuntimeException
+      responses:
+        '500':
+          description: RuntimeException 被攔截
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /error/persistence-error:
+    get:
+      tags:
+        - CPA10-錯誤攔截測試
+      summary: 模擬拋出持久化例外
+      description: 這個端點用於模擬並觸發一個 `PersistenceException`。
+      operationId: trigger
+      responses:
+        '500':
+          description: PersistenceException 被攔截
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+  /error/not-found-error:
+    get:
+      tags:
+        - CPA10-錯誤攔截測試
+      summary: 模擬拋出資料未找到例外
+      description: 這個端點用於模擬並觸發一個 `EntityNotFoundException`。
+      operationId: triggerEntityNotFoundException
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ApiResponseObject'
+components:
+  schemas:
+    CreateAccountRequest:
+      required:
+        - account
+        - accountStatus
+        - email
+        - gender
+        - idType
+        - name
+      type: object
+      properties:
+        account:
+          maxLength: 20
+          minLength: 0
+          type: string
+        name:
+          maxLength: 20
+          minLength: 0
+          type: string
+        email:
+          maxLength: 50
+          minLength: 0
+          type: string
+        phone:
+          maxLength: 20
+          minLength: 0
+          pattern: ^[0-9\-\+]{7,20}$
+          type: string
+        accountStatus:
+          type: string
+        idType:
+          type: string
+        idNumber:
+          maxLength: 20
+          minLength: 0
+          type: string
+        userType:
+          type: string
+        gender:
+          type: string
+        birthDate:
+          pattern: ^\d{3,4}/\d{2}/\d{2}$
+          type: string
+        title:
+          maxLength: 10
+          minLength: 0
+          type: string
+        roleList:
+          type: string
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          type: object
+    ApiResponseObject:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        data:
+          type: object
+    LoginRequest:
+      required:
+        - password
+        - username
+      type: object
+      properties:
+        username:
+          maxLength: 50
+          minLength: 0
+          type: string
+        password:
+          maxLength: 50
+          minLength: 0
+          type: string
+    DropdownOptionDTO:
+      type: object
+      properties:
+        optionCode:
+          type: string
+        optionValue:
+          type: string
+  securitySchemes:
+    JWT Authentication:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
