@@ -9,16 +9,16 @@ servers:
 security:
   - JWT Authentication: []
 tags:
-  - name: CPA04-配置管理
-    description: 提供用戶、系統及其他配置相關的 API，支援動態選項數據查詢
-  - name: CPA02-系統帳號管理
-    description: 處理帳戶相關操作的 API
   - name: CPA01-身份驗證
     description: 處理用戶身份驗證的 API，包括登入、註冊和登出操作。
-  - name: CPA10-錯誤攔截測試
-    description: Spring 會自動攔截這些例外並交由對應的 @ExceptionHandler 方法處理。
+  - name: CPA02-系統帳號管理
+    description: 處理帳戶相關操作的 API
   - name: CPA03-角色管理
     description: 處理角色相關操作的 API
+  - name: CPA04-系統功能管理
+    description: 處理系統功能相關操作的 API
+  - name: CPA05-配置管理
+    description: 提供用戶、系統及其他配置相關的 API，支援動態選項數據查詢
 paths:
   /{domain}/api/v1/users:
     get:
@@ -86,7 +86,7 @@ paths:
           example: 00、90、X0
         - name: userType
           in: query
-          description: 人員類別篩選
+          description: 人員類別篩選(單選)
           required: false
           schema:
             type: string
@@ -368,6 +368,12 @@ paths:
                     code: 400
                     message: 請檢查輸入的欄位:accountStatus
                     data: null
+                人員類別不相符:
+                  description: 人員類別不相符
+                  value:
+                    code: 400
+                    message: 該角色無法被賦予給使用者，請檢查角色與使用者的類型是否匹配。
+                    data: null
         '404':
           description: 指定的用戶或角色不存在
           content:
@@ -506,10 +512,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
-              example:
-                code: 400
-                message: 請檢查輸入的欄位:使用者已經有該角色
-                data: null
+              examples:
+                已擁有該角色:
+                  description: 已擁有該角色
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:使用者已經有該角色
+                    data: null
+                人員類別不相符:
+                  description: 人員類別不相符
+                  value:
+                    code: 400
+                    message: 該角色無法被賦予給使用者，請檢查角色與使用者的類型是否匹配。
+                    data: null
         '404':
           description: 指定的用戶或角色不存在
           content:
@@ -929,7 +944,7 @@ paths:
             default: asc
         - name: userType
           in: query
-          description: 人員類別篩選
+          description: 人員類別篩選(單選)
           required: false
           schema:
             type: string
@@ -1171,10 +1186,240 @@ paths:
                 code: 500
                 message: 查詢過程發生錯誤
                 data: null
+  /{domain}/api/v1/func:
+    get:
+      tags:
+        - CPA04-系統功能管理
+      summary: 查詢系統功能列表
+      description: 根據條件查詢並回傳系統功能列表
+      operationId: getAllRoles_1
+      parameters:
+        - name: domain
+          in: path
+          description: 域名
+          required: true
+          schema:
+            type: string
+            enum:
+              - DOMAIN_ONE
+              - DOMAIN_TWO
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 2147483647
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+            default: funcStrucId
+        - name: sortOrder
+          in: query
+          required: false
+          schema:
+            type: string
+            default: asc
+        - name: funcType
+          in: query
+          description: 人員類別篩選(單選)
+          required: false
+          schema:
+            type: string
+            default: WEB
+          example: SYSOP|STAFF|MEMBER|ASSISTANT
+        - name: userType
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '查詢完成結果如下, 共 ## 筆查詢結果'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 200
+                message: 查詢完成結果如下, 共 13 筆查詢結果
+                data:
+                  items:
+                    - authUserType: STAFF
+                      roleCode: SYS_OP
+                      roleName: 系統維運人員
+                      roleDesc: 負責維護系統
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: MEMBER
+                      roleCode: ORG_NORM_MEM
+                      roleName: 普通會員
+                      roleDesc: 普通會員
+                      isEnabled: true
+                      createdAt: 113/12/25 13:52
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF
+                      roleCode: ORG_SYS_ADMIN
+                      roleName: 公會-系統管理(公會層級-系統管理)
+                      roleDesc: 管理系統的公會人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_USR_MGR
+                      roleName: 公會-帳號管理(公會層級-帳號管理)
+                      roleDesc: 管理帳號新增編輯的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_ACT_MGR
+                      roleName: 公會-活動管理(公會層級-活動管理)
+                      roleDesc: 管理活動發佈及報名等的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_DOC_MGR
+                      roleName: 公會-公文管理(公會層級-公文管理)
+                      roleDesc: 管理收發公文的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: ''
+                      roleCode: admin
+                      roleName: 系統管理者
+                      roleDesc: ''
+                      isEnabled: true
+                      createdAt: 113/12/17 14:14
+                      createdBy: System
+                      createdByName: ''
+                    - authUserType: ''
+                      roleCode: cpa_admin
+                      roleName: 公會管理員
+                      roleDesc: ''
+                      isEnabled: false
+                      createdAt: 113/12/17 14:14
+                      createdBy: System
+                      createdByName: ''
+                    - authUserType: ''
+                      roleCode: admin
+                      roleName: 系統管理者
+                      roleDesc: ''
+                      isEnabled: true
+                      createdAt: 113/12/17 14:14
+                      createdBy: System
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_FEE_MGR
+                      roleName: 公會-會費管理(公會層級-會費管理)
+                      roleDesc: 管理會費繳納狀況的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_SPV_MGR
+                      roleName: 公會-印鑑管理(公會層級-印鑑管理)
+                      roleDesc: 管理印鑑證明的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_PNFC_MGR
+                      roleName: 公會-推播管理(公會層級-推播管理)
+                      roleDesc: 管理推播清單的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                    - authUserType: STAFF;MEMBER
+                      roleCode: ORG_SHFT_MGR
+                      roleName: 公會-輪值管理(公會層級-輪值管理)
+                      roleDesc: 管理輪值成員的人員
+                      isEnabled: true
+                      createdAt: 113/12/25 11:23
+                      createdBy: jeff
+                      createdByName: ''
+                  pagination:
+                    currentPage: 1
+                    pageSize: 2147483647
+                    totalPages: 1
+                    totalItems: 13
+        '204':
+          description: 無符合的查詢結果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 204
+                message: 無符合的查詢結果, 請調整查詢的條件
+                data: null
+        '400':
+          description: 錯誤的請求
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              examples:
+                請檢查輸入的欄位:
+                  description: 請檢查輸入的欄位
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:userType
+                    data: null
+                非法的排序欄位:
+                  description: 非法的排序欄位
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:排序欄位 createdAtD 不在允許的欄位範圍內
+                    data: null
+                無效的排序方式:
+                  description: 無效的排序方式
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:排序方式 descA 無效，請使用 asc 或 desc
+                    data: null
+                無效的排序組合:
+                  description: 無效的排序組合
+                  value:
+                    code: 400
+                    message: 請檢查輸入的欄位:排序欄位數量與排序方式數量不一致
+                    data: null
+        '500':
+          description: 查詢過程發生例外
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+              example:
+                code: 500
+                message: 查詢過程發生錯誤
+                data: null
   /{domain}/api/v1/common/dropdown/config:
     get:
       tags:
-        - CPA04-配置管理
+        - CPA05-配置管理
+      summary: 根據設定值主類別獲取下拉選項
+      description: 根據傳入的域名、類別代碼類型（groupType）以及排序順序，返回對應的下拉選項列表。
       operationId: getDropdownOptionsFromConfig
       parameters:
         - name: domain
@@ -1199,16 +1444,28 @@ paths:
             default: asc
       responses:
         '200':
-          description: OK
+          description: 成功獲取下拉選項
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DropdownOptionDTO'
+        '400':
+          description: 無效的請求，缺少必要的參數或參數格式錯誤
           content:
             '*/*':
               schema:
                 $ref: '#/components/schemas/ApiResponseObject'
+        '500':
+          description: 伺服器錯誤，服務不可用
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
   /{domain}/api/v1/common/dropdown/code:
     get:
       tags:
-        - CPA04-配置管理
-      summary: 根據類別代碼獲取下拉選項
+        - CPA05-配置管理
+      summary: 根據代碼群組類別獲取下拉選項
       description: 根據傳入的域名、類別代碼類型（groupType）以及排序順序，返回對應的下拉選項列表。
       operationId: getDropdownOptionsFromCode
       parameters:
@@ -1254,62 +1511,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiResponse'
-  /error/sql-error:
-    get:
-      tags:
-        - CPA10-錯誤攔截測試
-      summary: 模擬拋出資料庫錯誤
-      description: 這個端點用於模擬並觸發一個 `SQLException`。
-      operationId: triggerSQLException
-      responses:
-        '500':
-          description: SQLException 被攔截
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-  /error/runtime-error:
-    get:
-      tags:
-        - CPA10-錯誤攔截測試
-      summary: 模擬拋出執行時例外
-      description: 這個端點用於模擬並觸發一個 `RuntimeException`。
-      operationId: triggerRuntimeException
-      responses:
-        '500':
-          description: RuntimeException 被攔截
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-  /error/persistence-error:
-    get:
-      tags:
-        - CPA10-錯誤攔截測試
-      summary: 模擬拋出持久化例外
-      description: 這個端點用於模擬並觸發一個 `PersistenceException`。
-      operationId: trigger
-      responses:
-        '500':
-          description: PersistenceException 被攔截
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
-  /error/not-found-error:
-    get:
-      tags:
-        - CPA10-錯誤攔截測試
-      summary: 模擬拋出資料未找到例外
-      description: 這個端點用於模擬並觸發一個 `EntityNotFoundException`。
-      operationId: triggerEntityNotFoundException
-      responses:
-        '200':
-          description: OK
-          content:
-            '*/*':
-              schema:
-                $ref: '#/components/schemas/ApiResponseObject'
 components:
   schemas:
     CreateAccountRequest:
