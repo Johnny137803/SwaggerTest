@@ -1231,17 +1231,17 @@ paths:
             default: asc
         - name: funcType
           in: query
-          description: 人員類別篩選(單選)
           required: false
           schema:
             type: string
             default: WEB
-          example: SYSOP|STAFF|MEMBER|ASSISTANT
         - name: userType
           in: query
+          description: 人員類別篩選(單選)
           required: false
           schema:
             type: string
+          example: SYSOP|STAFF|MEMBER|ASSISTANT
       responses:
         '200':
           description: '查詢完成結果如下, 共 ## 筆查詢結果'
@@ -1251,118 +1251,62 @@ paths:
                 $ref: '#/components/schemas/ApiResponse'
               example:
                 code: 200
-                message: 查詢完成結果如下, 共 13 筆查詢結果
+                message: 查詢完成結果如下, 共 23 筆查詢結果
                 data:
                   items:
-                    - authUserType: STAFF
-                      roleCode: SYS_OP
-                      roleName: 系統維運人員
-                      roleDesc: 負責維護系統
+                    - funcCode: MEMDATA
+                      funcType: WEB
+                      funcName: 會員資料
+                      funcNameS: 會員資料
+                      funcDesc: 管理會員資料
+                      funcStrucId: '01'
+                      funcModList: ''
+                      authUserTypeList: STAFF
                       isEnabled: true
-                      createdAt: 113/12/25 11:23
+                      createdAt: 113/12/25 17:02
                       createdBy: jeff
                       createdByName: ''
-                    - authUserType: MEMBER
-                      roleCode: ORG_NORM_MEM
-                      roleName: 普通會員
-                      roleDesc: 普通會員
+                    - funcCode: MEMDATA_EXEMGE
+                      funcType: WEB
+                      funcName: 會員資料-執業會計師管理
+                      funcNameS: 執業會計師管理
+                      funcDesc: 管理執業會計師
+                      funcStrucId: 01-01
+                      funcModList: ''
+                      authUserTypeList: STAFF
                       isEnabled: true
-                      createdAt: 113/12/25 13:52
+                      createdAt: 113/12/25 17:02
                       createdBy: jeff
                       createdByName: ''
-                    - authUserType: STAFF
-                      roleCode: ORG_SYS_ADMIN
-                      roleName: 公會-系統管理(公會層級-系統管理)
-                      roleDesc: 管理系統的公會人員
+                    - funcCode: MEMDATA_NONEMGE
+                      funcType: WEB
+                      funcName: 會員資料-非職業會員管理
+                      funcNameS: 非職業會員管理
+                      funcDesc: 管理非職業會員
+                      funcStrucId: 01-02
+                      funcModList: ''
+                      authUserTypeList: STAFF
                       isEnabled: true
-                      createdAt: 113/12/25 11:23
+                      createdAt: 113/12/25 17:02
                       createdBy: jeff
                       createdByName: ''
-                    - authUserType: STAFF;MEMBER
-                      roleCode: ORG_USR_MGR
-                      roleName: 公會-帳號管理(公會層級-帳號管理)
-                      roleDesc: 管理帳號新增編輯的人員
+                    - funcCode: MEMDATA_MEMMGE
+                      funcType: WEB
+                      funcName: 會員資料-會員資料管理
+                      funcNameS: 會員資料管理
+                      funcDesc: 管理會員資料
+                      funcStrucId: 01-03
+                      funcModList: ''
+                      authUserTypeList: STAFF
                       isEnabled: true
-                      createdAt: 113/12/25 11:23
-                      createdBy: jeff
-                      createdByName: ''
-                    - authUserType: STAFF;MEMBER
-                      roleCode: ORG_ACT_MGR
-                      roleName: 公會-活動管理(公會層級-活動管理)
-                      roleDesc: 管理活動發佈及報名等的人員
-                      isEnabled: true
-                      createdAt: 113/12/25 11:23
-                      createdBy: jeff
-                      createdByName: ''
-                    - authUserType: STAFF;MEMBER
-                      roleCode: ORG_DOC_MGR
-                      roleName: 公會-公文管理(公會層級-公文管理)
-                      roleDesc: 管理收發公文的人員
-                      isEnabled: true
-                      createdAt: 113/12/25 11:23
-                      createdBy: jeff
-                      createdByName: ''
-                    - authUserType: ''
-                      roleCode: admin
-                      roleName: 系統管理者
-                      roleDesc: ''
-                      isEnabled: true
-                      createdAt: 113/12/17 14:14
-                      createdBy: System
-                      createdByName: ''
-                    - authUserType: ''
-                      roleCode: cpa_admin
-                      roleName: 公會管理員
-                      roleDesc: ''
-                      isEnabled: false
-                      createdAt: 113/12/17 14:14
-                      createdBy: System
-                      createdByName: ''
-                    - authUserType: ''
-                      roleCode: admin
-                      roleName: 系統管理者
-                      roleDesc: ''
-                      isEnabled: true
-                      createdAt: 113/12/17 14:14
-                      createdBy: System
-                      createdByName: ''
-                    - authUserType: STAFF;MEMBER
-                      roleCode: ORG_FEE_MGR
-                      roleName: 公會-會費管理(公會層級-會費管理)
-                      roleDesc: 管理會費繳納狀況的人員
-                      isEnabled: true
-                      createdAt: 113/12/25 11:23
-                      createdBy: jeff
-                      createdByName: ''
-                    - authUserType: STAFF;MEMBER
-                      roleCode: ORG_SPV_MGR
-                      roleName: 公會-印鑑管理(公會層級-印鑑管理)
-                      roleDesc: 管理印鑑證明的人員
-                      isEnabled: true
-                      createdAt: 113/12/25 11:23
-                      createdBy: jeff
-                      createdByName: ''
-                    - authUserType: STAFF;MEMBER
-                      roleCode: ORG_PNFC_MGR
-                      roleName: 公會-推播管理(公會層級-推播管理)
-                      roleDesc: 管理推播清單的人員
-                      isEnabled: true
-                      createdAt: 113/12/25 11:23
-                      createdBy: jeff
-                      createdByName: ''
-                    - authUserType: STAFF;MEMBER
-                      roleCode: ORG_SHFT_MGR
-                      roleName: 公會-輪值管理(公會層級-輪值管理)
-                      roleDesc: 管理輪值成員的人員
-                      isEnabled: true
-                      createdAt: 113/12/25 11:23
+                      createdAt: 113/12/25 17:03
                       createdBy: jeff
                       createdByName: ''
                   pagination:
                     currentPage: 1
-                    pageSize: 2147483647
-                    totalPages: 1
-                    totalItems: 13
+                    pageSize: 4
+                    totalPages: 6
+                    totalItems: 23
         '204':
           description: 無符合的查詢結果
           content:
